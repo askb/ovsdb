@@ -1,0 +1,36 @@
+---
+name: Javadoc test
+# yamllint disable-line rule:truthy
+on: push
+permissions:
+  contents: read
+jobs:
+  javadoc-verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Build javadoc
+        # yamllint disable-line rule:line-length
+        uses: lfreleng-actions/maven-build-action@1de87fd734620335eeae65933795f226c0d8a24e # v0.5.6
+        with:
+          java-version: "21"
+          mvn-version: "3.9.6"
+          mvn-phases: "clean install javadoc:aggregate"
+          mvn-profiles: "q"
+          mvn-params: >-
+            -e -Dmaven.javadoc.skip=false -DskipTests=true
+            -Dcheckstyle.skip=true -Dfindbugs.skip=true
+          run-jacoco: "false"
+      - name: Upload javadoc
+        # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: javadoc
+          path: |
+            target/reports/apidocs
+            target/site/apidocs
+          if-no-files-found: error
+          retention-days: 7
